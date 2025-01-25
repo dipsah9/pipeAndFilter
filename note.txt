@@ -1,0 +1,15 @@
+Lets study about pipes and filters. 
+    Behind the scenes there are lot of processes in our cpu. So how they communicate with each other?
+    And most of all why they need to communicate ? Lets say process1 is using some resources for which process 
+    is waiting to acquires that resources. So how the process2 will know that process one is done with 
+    the resources and its free now. That is where Pipes come in to play. Pipes are used for interprocess
+    commnication. And its of following types: 
+        1) Anonymous: 
+            -Temporary, unidirectional commnication. 
+            -Typically used between parent and child process. 
+            -Can not be used between unrelated process. 
+
+        2)Names Pipes: 
+            - Persistent, bidirectional commnication. 
+            - commnication between unrelated process. 
+            - Named pipes appear as file in the directory. 
