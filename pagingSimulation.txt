@@ -1,0 +1,18 @@
+Scenario for Simulation
+    32-bit virtual address:
+        Divided into: 
+            10 bits for the first-level page table index
+            10 bits for the second level page table index
+            12 bit for the offset within the pages. 
+        This means: 
+                Each page has a size of 4KB
+                There are 1024 entries in both the first and second-level page
+
+    physical Memory: 
+        Reperesented as column of frames. 
+        Each frame is 4KB 
+    
+    Objective: 
+        Translate a virtual address to a physical address. 
+        simulate two process sharing a physical frame, where one can only and 
+        other can read and write. 
