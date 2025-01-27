@@ -66,3 +66,13 @@ First level index:
 
 8) Handling EOF: 
     When all the data in the pipe has been read and write then end of the file is closed. 
+
+
+<<<<<<<<<<<<<<------------------------How does the fork works---------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#Cleared one doubt. 
+    When we fork(), child process is created with pid equals to 0. That does not mean that pid 
+    is assigned to the process by the system. That pid is the return value of the fork function. 
+
+    Then we use it to perform any task in child process or the parent process. 
+    
