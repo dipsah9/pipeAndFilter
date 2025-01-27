@@ -32,4 +32,37 @@ First level index:
         Second level index:
             This as the shelf within that section. 
                 Offset: the "page number" of the book we are looking for on that shelf. 
-                
+
+
+
+<<<<<<<<<<<<<<<<<<<<------------------------------Concept for Concat----------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+1) Pipes and interprocess commnication:
+    - We will use pipe for the commnication between two processes. 
+    - pipe() => system call
+    - dup2() => to redirect the data between the processes
+
+2) forking process: 
+        - Each process can process its task independently. 
+
+3)Redirection of standard I/O. 
+    Each process has I/O operation. That can be contolled using the filde descriptor and dup2() function. 
+
+4)Executing Commands:  
+    For this taks we use exec() family. 
+            - execlp()
+            - execvp()
+
+5)Managaing file descriptor:
+    - After forking close the unused end of the pipes to prevent resources leaks or unexpected behaviour.
+    - Close the appropriate descriptor in both parent and child processes.
+
+6)File permission: 
+    - When writting to a file we use creat() and open(), we need to give certain permission flags, like read only and read and write both.
+
+7) Programm structure and abstraction: 
+    - set_outputfile() : we need to define a path for the path. 
+    - create_child(): start a child process. 
+
+8) Handling EOF: 
+    When all the data in the pipe has been read and write then end of the file is closed. 
