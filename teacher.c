@@ -1,39 +1,83 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+// Function to create a child process
+static pid_t create_child(char *const argv[], int (*in_pipe)[2], int (*out_pipe)[2]) {
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) { // Child process
+        if (in_pipe != NULL) {
+            close((*in_pipe)[1]);
+            dup2((*in_pipe)[0], STDIN_FILENO);
+            close((*in_pipe)[0]);
+        }
+
+       
+
+        if (out_pipe != NULL) {
+            close((*out_pipe)[0]);
+            dup2((*out_pipe)[1], STDOUT_FILENO);
+            close((*out_pipe)[1]);
+        }
+         printf("here no stdin and stdout\n");
+
+        execvp(argv[0], argv);
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Parent process cleanup
+    if (in_pipe != NULL) {
+        close((*in_pipe)[0]);
+    }
+    if (out_pipe != NULL) {
+        close((*out_pipe)[1]);
+    }
+
+    return pid;
+}
 
 int main() {
-    int pipe_fd[2]; // Array for the pipe's file descriptors
-    pid_t child;
-    char write_msg[] = "Hello from parent!";
-    char read_msg[100];
+    int pipe_fd1[2], pipe_fd2[2];
 
-    // Create the pipe
-    if (pipe(pipe_fd) == -1) {
-        perror("pipe");
+    // Create the first pipe
+    if (pipe(pipe_fd1) == -1) {
+        perror("pipe failed");
         exit(EXIT_FAILURE);
     }
 
-    // Fork a child process
-    child = fork();
-
-    if (child < 0) {
-        perror("fork");
+    // Create the second pipe
+    if (pipe(pipe_fd2) == -1) {
+        perror("pipe failed");
         exit(EXIT_FAILURE);
     }
 
-    if (child == 0) { // Child process
-        close(pipe_fd[1]); // Close the unused write end
-        read(pipe_fd[0], read_msg, sizeof(read_msg)); // Read from the pipe
-        printf("Child received: %s\n", read_msg);
-        close(pipe_fd[0]); // Close the read end
-    } else { // Parent process
-        close(pipe_fd[0]); // Close the unused read end
-        write(pipe_fd[1], write_msg, strlen(write_msg) + 1); // Write to the pipe
-        close(pipe_fd[1]); // Close the write end
-        wait(NULL); // Wait for the child process to finish
+    // First process: seq 1 10
+    char *seq_cmd[] = {"seq", "1", "10", NULL};
+    create_child(seq_cmd, NULL, &pipe_fd1);
+
+    // Second process: awk '{print $1 * $1}'
+    char *awk_cmd[] = {"awk", "{print $1 * $1}", NULL};
+    create_child(awk_cmd, &pipe_fd1, &pipe_fd2);
+
+    // Parent process reads from the output of the second process
+    close(pipe_fd2[1]); // Close write end of the second pipe
+    char buffer[128];
+    while (read(pipe_fd2[0], buffer, sizeof(buffer)) > 0) {
+        printf("%s", buffer); // Print the output
     }
+    close(pipe_fd2[0]);
+
+    // Wait for children to finish
+    while (wait(NULL) > 0);
 
     return 0;
 }
