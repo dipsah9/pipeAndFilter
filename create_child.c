@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <string.h>
 
 #define READ 0
 #define WRITE 1
@@ -28,15 +29,15 @@ static pid_t create_child(char * const argv[], int (*in_pipe)[2], int (*out_pipe
         if(child == 0){
         //TODO: set STDIN if in_pipe is not null
         if(in_pipe != NULL){
-            close((*in_pipe)[1]);
-            dup2((*in_pipe)[0], STDIN_FILENO);
-            close((*in_pipe)[0]);
+            close((*in_pipe)[WRITE]);
+            dup2((*in_pipe)[READ], STDIN_FILENO);
+            close((*in_pipe)[READ]);
         }
         //TODO: set STDOUT if out_pipe is not null
         if(out_pipe != NULL){
-            close((*out_pipe)[0]);
-            dup2((*out_pipe)[1], STDOUT_FILENO);
-            close((*out_pipe)[1]);
+            close((*out_pipe)[READ]);
+            dup2((*out_pipe)[WRITE], STDOUT_FILENO);
+            close((*out_pipe)[WRITE]);
         }
 
         }
@@ -53,7 +54,7 @@ static pid_t create_child(char * const argv[], int (*in_pipe)[2], int (*out_pipe
         perror("exec failed");
         exit(EXIT_FAILURE);
 
-        return pid;
+        return child;
        
 }
 
@@ -62,5 +63,36 @@ static pid_t create_child(char * const argv[], int (*in_pipe)[2], int (*out_pipe
 // seq 1 MAX | awk AWK_VORSCHRIFT | grep GREP_VORSCHRIFT > OUTPUT_FILE
 
 int main(int argc, char *argv[]) {
-    return 1;
+
+    int in_pipe[2][2], out_pipe[2][2];
+
+    char *cmd1[] = {"seq", "2", argv[1], NULL};
+    char *cmd2[] = {"awk", argv[2], NULL};
+    char *cmd3[] = {"grep", argv[3], NULL};
+
+    //create the input pipe 
+    if(pipe(in_pipe[0]) == -1 ){
+        perror("pipe failed");
+        exit(EXIT_FAILURE);
+    }
+
+    //first process (seq) -> write to the pipe input pipe 
+    create_child(cmd1, NULL, &out_pipe[1]);
+    close(out_pipe[1][1]);
+    
+    //create the second pipe 
+    if(pipe(out_pipe[1]) == -1){
+        perror("pipe failed");
+        exit(EXIT_FAILURE);
+    }
+
+    
+    
+       
+    
+
+
+
+
+    return 0;
 }
